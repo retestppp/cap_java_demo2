@@ -16,7 +16,11 @@ import com.sap.cds.services.handler.annotations.*;
 
 
 import com.sap.cds.services.persistence.PersistenceService;
-import com.sap.cds.ql.*;
+import com.sap.cds.ql.*; //
+import com.sap.cds.ql.Delete;
+import com.sap.cds.ql.Insert;
+import com.sap.cds.ql.Select;
+import com.sap.cds.ql.Update;
 import com.sap.cds.services.cds.*;
 
 import java.util.List;
@@ -89,6 +93,41 @@ public class CatalogServiceHandler implements EventHandler {
 
 
 
+
+	@Before(event = CqnService.EVENT_UPDATE,  entity = Books_.CDS_NAME)
+	public void beforeUpdate(CdsUpdateEventContext context, Books books) {
+		System.out.println("Before books");
+		System.out.println("books");
+		System.out.println(books);
+	}
+
+
+
+	@On(event = CqnService.EVENT_UPDATE,  entity = Books_.CDS_NAME)
+	public void onUpdate(CdsUpdateEventContext context, Books books) {
+		System.out.println("On books");
+		System.out.println("books");
+		System.out.println(books);
+
+		System.out.println("수정 요청: ");
+
+		if (books.getId() != null) {
+			books.setStock(books.getStock() + 9999);
+		}
+
+		db.run(Update.entity(Books_.CDS_NAME).data(books));
+
+		// 결과 세팅 (예시: 응답 반환용)
+		Map<String, Object> result = Map.of("ID", books.getId(), "title", books.getTitle(), "stock", books.getStock());
+		context.setResult(List.of(result)); // 반드시 Iterable<Map> 또는 Result 사용
+	}
+
+	@After(event = CqnService.EVENT_UPDATE,  entity = Books_.CDS_NAME)
+	public void afterUpdate(CdsUpdateEventContext context, Books books) {
+		System.out.println("After books");
+		System.out.println("books");
+		System.out.println(books);
+	}
 
 	@On(event = "addReview")
 	public void onAddReview(AddReviewContext context) {
