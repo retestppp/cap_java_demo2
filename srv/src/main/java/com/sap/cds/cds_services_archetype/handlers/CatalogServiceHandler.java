@@ -11,8 +11,7 @@ import com.sap.cds.services.handler.annotations.After;
 import com.sap.cds.services.handler.annotations.ServiceName;
 import com.sap.cds.services.handler.annotations.On;
 import com.sap.cds.services.handler.annotations.*;
-import cds.gen.catalogservice.CatalogService_;
-import cds.gen.catalogservice.Books;
+
 
 
 
@@ -29,12 +28,22 @@ import com.sap.cds.services.EventContext;
 import com.sap.cds.services.*;
 import com.sap.cds.CdsData;
 
+import cds.gen.catalogservice.Books;
+import cds.gen.catalogservice.Books_;
+import cds.gen.catalogservice.CatalogService_;
 import cds.gen.catalogservice.AddReviewContext;
 import cds.gen.catalogservice.AccessDataBaseContext;
+
 
 @Component
 @ServiceName(CatalogService_.CDS_NAME)
 public class CatalogServiceHandler implements EventHandler {
+
+	private final PersistenceService db;
+
+	public CatalogServiceHandler(PersistenceService db) {
+		this.db = db;
+	}
 
 	@After(event = CqnService.EVENT_READ)
 	public void discountBooks(Stream<Books> books) {
@@ -45,7 +54,7 @@ public class CatalogServiceHandler implements EventHandler {
 
 
 	@Before(event = CqnService.EVENT_CREATE)
-	public void beforeCreate(Stream<Books> books) {
+	public void beforeCreate(CdsCreateEventContext context, Books books) {
 		System.out.println("Before books");
 		System.out.println("books");
 		System.out.println(books);
@@ -60,24 +69,25 @@ public class CatalogServiceHandler implements EventHandler {
 		var insert = context.getCqn(); // INSERT 문 정보
 		System.out.println("삽입 요청: " + insert);
 
+		if (books.getId() != null) {
+			books.setStock(books.getStock() + 9999);
+		}
 
-//		if (books.getId() != null) {
-//			books.setStock(books.getStock() + 9999);
-//		}
-//		PersistenceService db = PersistenceService();
-//		// db에 저장
-//		db.run(Insert.into("Books").entry(books));  // book: Books 객체
-//		// 결과 세팅 (예시: 응답 반환용)
-//		Map<String, Object> result = Map.of("ID", "101", "title", "신간 도서");
-//		context.setResult(List.of(result)); // 반드시 Iterable<Map> 또는 Result 사용
+		// db에 저장
+		db.run(Insert.into(Books_.CDS_NAME).entry(books));  // book: Books 객체
+		// 결과 세팅 (예시: 응답 반환용)
+		Map<String, Object> result = Map.of("ID", books.getId(), "title", books.getTitle(), "stock", books.getStock());
+		context.setResult(List.of(result)); // 반드시 Iterable<Map> 또는 Result 사용
 	}
 
 	@After(event = CqnService.EVENT_CREATE)
-	public void afterCreate(Stream<Books> books) {
+	public void afterCreate(CdsCreateEventContext context, Books books) {
 		System.out.println("After books");
 		System.out.println("books");
 		System.out.println(books);
 	}
+
+
 
 
 	@On(event = "addReview")
