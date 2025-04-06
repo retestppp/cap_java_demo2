@@ -1,0 +1,43 @@
+spring:
+  config.activate.on-profile: default
+
+  datasource:
+    url: jdbc:postgresql://192.168.75.153:5432/cms_dev_java
+    username: postgres
+    password: postgres!@
+    driver-class-name: org.postgresql.Driver
+
+  security:
+    user:
+      name: user
+      password: pass
+    basic:
+      enabled: false
+
+cds:
+  data-source:
+    auto-config:
+      enabled: false
+  requires:
+    db:
+      kind: postgres
+      credentials:
+        host: 172.20.2.66
+        port: 5432
+        user: postgres
+        password: postgres!@
+        database: cms_dev_java
+
+management:
+  endpoint:
+    health:
+      show-components: always
+      probes.enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: health
+  health:
+    defaults.enabled: false
+    ping.enabled: true
+    db.enabled: true
